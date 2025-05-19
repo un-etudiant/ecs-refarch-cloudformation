@@ -63,18 +63,16 @@ Resources:
         MetadataOptions:
           HttpEndpoint: enabled
           HttpTokens: optional
+          HttpPutResponseHopLimit: 2
         TagSpecifications:
           - ResourceType: instance
             Tags:
               - Key: Name
                 Value: !Sub ${EnvironmentName} ECS host
-      MetadataOptions:
-        HttpPutResponseHopLimit: 2
-      TagSpecifications:
-        - ResourceType: launch-template
-          Tags:
-            - Key: Name
-              Value: !Sub ${EnvironmentName} ECS Launch Template
+          - ResourceType: launch-template
+            Tags:
+              - Key: Name
+                Value: !Sub ${EnvironmentName} ECS Launch Template
 
   ECSAutoScalingGroup:
     DependsOn: ECSCluster
