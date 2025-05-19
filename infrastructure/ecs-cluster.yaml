@@ -44,6 +44,7 @@ Resources:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateName: !Sub ${EnvironmentName}-ECS-LaunchTemplate
+      VersionDescription: Initial version
       LaunchTemplateData:
         ImageId: !Ref ECSAMI
         InstanceType: !Ref InstanceType
@@ -56,7 +57,9 @@ Resources:
             #!/bin/bash
             yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
             yum install -y https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
-            yum install -y aws-cfn-bootstrap hibagent 
+            yum install -y aws-cfn-bootstrap hibagent
+            echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
+            /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c ssm:${ECSCloudWatchParameter} -s
             /opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchTemplate
             /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSAutoScalingGroup
             /usr/bin/enable-ec2-spot-hibernation
@@ -69,10 +72,6 @@ Resources:
             Tags:
               - Key: Name
                 Value: !Sub ${EnvironmentName} ECS host
-          - ResourceType: launch-template
-            Tags:
-              - Key: Name
-                Value: !Sub ${EnvironmentName} ECS Launch Template
 
   ECSAutoScalingGroup:
     DependsOn: ECSCluster
